@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ভৌতিক গল্পের মায়াজাল</title>
+    
+    <!-- ResponsiveVoice API -->
+    <script src="https://code.responsivevoice.org/responsivevoice.js?key=FREE_KEY"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Creepster&display=swap');
+
+        body {
+            background-color: #050202;
+            color: #e0d0d0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: #140505;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 0 25px rgba(255, 0, 0, 0.4);
+            border: 1px solid #4a0000;
+        }
+
+        h1 {
+            font-family: 'Creepster', cursive;
+            color: #ff2222;
+            text-align: center;
+            margin-bottom: 5px;
+            font-size: 2.2rem;
+            letter-spacing: 1px;
+            text-shadow: 0 0 8px #ff0000;
+        }
+
+        p.subtitle {
+            text-align: center;
+            color: #888;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 160px;
+            background-color: #000;
+            color: #ffb3b3;
+            border: 1px solid #660000;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 1rem;
+            box-sizing: border-box;
+            resize: vertical;
+            outline: none;
+        }
+
+        textarea:focus {
+            border-color: #ff0000;
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        select, button {
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            border: none;
+            cursor: pointer;
+        }
+
+        select {
+            background: #2a0000;
+            color: #fff;
+            border: 1px solid #660000;
+            flex: 1;
+        }
+
+        .btn-play {
+            background: #990000;
+            color: #fff;
+            font-weight: bold;
+            flex: 1;
+            transition: 0.3s;
+        }
+
+        .btn-play:hover {
+            background: #e60000;
+            box-shadow: 0 0 10px #ff0000;
+        }
+
+        .btn-stop {
+            background: #333;
+            color: #fff;
+        }
+
+        .btn-stop:hover {
+            background: #555;
+        }
+
+        .checkbox-group {
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: #bbb;
+        }
+
+        input[type="checkbox"] {
+            accent-color: #ff0000;
+            width: 16px;
+            height: 16px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>ভৌতিক গল্পের শব্দজগৎ</h1>
+    <p class="subtitle">আপনার গল্পটি টাইপ করুন এবং ভয়ংকর কণ্ঠে শুনুন</p>
+
+    <textarea id="storyText" placeholder="এখানে আপনার ভৌতিক গল্পটি লিখুন... (যেমন: অন্ধকার রাতে নির্জন বটগাছের নিচে...)"></textarea>
+
+    <div class="controls">
+        <select id="voiceType">
+            <option value="Bengali Female">মেয়ে কণ্ঠ (গম্ভীর)</option>
+            <option value="Bengali Male">ছেলে কণ্ঠ (ধীরগতি)</option>
+        </select>
+
+        <button class="btn-play" onclick="speakStory()">গল্প শুনুন 👻</button>
+        <button class="btn-stop" onclick="stopAudio()">থামান</button>
+    </div>
+
+    <div class="checkbox-group">
+        <input type="checkbox" id="scarySound" checked>
+        <label for="scarySound">ভয়ংকর ব্যাকগ্রাউন্ড মিউজিক চালু রাখুন</label>
+    </div>
+</div>
+
+<script>
+    let audioCtx = null;
+    let oscillator = null;
+
+    // ভৌতিক শব্দ তৈরি করার ওয়েভ ফাংশন
+    function startHorrorTone() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        
+        oscillator = audioCtx.createOscillator();
+        let gainNode = audioCtx.createGain();
+
+        oscillator.type = 'sawtooth';
+        oscillator.frequency.setValueAtTime(45, audioCtx.currentTime); // নিচু ও ভীতিপ্রদ ফ্রিকোয়েন্সি
+        
+        gainNode.gain.setValueAtTime(0.04, audioCtx.currentTime); // মিউজিকের ভলিউম হালকা রাখা
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        oscillator.start();
+    }
+
+    function stopHorrorTone() {
+        if (oscillator) {
+            oscillator.stop();
+            oscillator = null;
+        }
+    }
+
+    function speakStory() {
+        let text = document.getElementById("storyText").value;
+        if (!text.trim()) {
+            alert("দয়া করে একটি গল্প লিখুন!");
+            return;
+        }
+
+        // আগের যেকোনো ভয়েস বা সাউন্ড বন্ধ করা
+        responsiveVoice.cancel();
+        stopHorrorTone();
+
+        // ব্যাকগ্রাউন্ড সাউন্ড চালু করা
+        if (document.getElementById("scarySouc
